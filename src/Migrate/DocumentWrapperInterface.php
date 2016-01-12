@@ -5,12 +5,12 @@
  * Contains DocumentWrapperInterface.
  */
 
-namespace Drupal\integration_consumer\Migrate;
+namespace Drupal\integration\Migrate;
 
 /**
  * Interface DocumentWrapperInterface.
  *
- * @package Drupal\integration_consumer\Migrate
+ * @package Drupal\integration\Migrate
  */
 interface DocumentWrapperInterface {
 

@@ -5,8 +5,8 @@
  * Contains IntegrationTestAbstractMigration class.
  */
 
-use Drupal\integration_consumer\Migrate\MigrateItemJSON;
-use Drupal\integration_consumer\Migrate\AbstractMigration;
+use Drupal\integration\Migrate\MigrateItemJSON;
+use Drupal\integration\Migrate\AbstractMigration;
 
 /**
  * Class IntegrationTestAbstractMigration.
