@@ -5,7 +5,7 @@
  * Contains \Drupal\integration\Tests\DocumentWrapperTest.
  */
 
-namespace Drupal\integration\Tests\Consumer\Migrate;
+namespace Drupal\integration\Tests\Migrate;
 
 use Drupal\integration\Document\Document;
 use Drupal\integration\Migrate\DocumentWrapper;
