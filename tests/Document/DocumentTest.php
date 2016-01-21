@@ -8,7 +8,7 @@
 namespace Drupal\integration\Tests\Document;
 
 use Drupal\integration\Document\Document;
-use Drupal\integration\Tests\Consumer\Migrate\AbstractMigrateTest;
+use Drupal\integration\Tests\Migrate\AbstractMigrateTest;
 
 /**
  * Class DocumentTest.

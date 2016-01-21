@@ -5,14 +5,14 @@
  * Contains AbstractMigrateTest.
  */
 
-namespace Drupal\integration\Tests\Consumer\Migrate;
+namespace Drupal\integration\Tests\Migrate;
 
 /**
  * Class AbstractMigrateTest.
  *
  * @group migrate
  *
- * @package Drupal\integration\Tests\Consumer\Migrate
+ * @package Drupal\integration\Tests\Migrate
  */
 abstract class AbstractMigrateTest extends \PHPUnit_Framework_TestCase {
 

@@ -5,7 +5,7 @@
  * Contains CategoriesMigrationTest class.
  */
 
-namespace Drupal\integration\Tests\Consumer\Migrate;
+namespace Drupal\integration\Tests\Migrate;
 
 use Drupal\integration\Document\Document;
 
@@ -14,7 +14,7 @@ use Drupal\integration\Document\Document;
  *
  * @group migrate
  *
- * @package Drupal\integration\Tests\Consumer\Migrate
+ * @package Drupal\integration\Tests\Migrate
  */
 class CategoriesMigrationTest extends AbstractMigrateTest {
 
