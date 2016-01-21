@@ -10,6 +10,9 @@ namespace Drupal\integration\Migrate;
 /**
  * Class AbstractMigration.
  *
+
+ * @method \MigrateDestinationEntity getDestination()
+ *
  * @package Drupal\integration\Migrate
  *
  * Destination class implementing migration into translatable nodes.
@@ -25,8 +28,10 @@ abstract class AbstractMigration extends \Migration {
    *    Source row, as expected by Migrate class.
    */
   public function complete($entity, \stdClass $source_row) {
-    if (entity_translation_enabled($this->getDestination()->getEntityType())) {
-      $this->saveTranslations($entity, $source_row);
+    if (module_exists('entity_translation')) {
+      if (entity_translation_enabled($this->getDestination()->getEntityType())) {
+        $this->saveTranslations($entity, $source_row);
+      }
     }
   }
 
@@ -98,6 +103,11 @@ abstract class AbstractMigration extends \Migration {
 
         // Save entity.
         entity_save($entity_type, $entity);
+
+        //Generate aliases for the translations.
+        if (module_exists('pathauto') && is_callable('pathauto_' . $entity_type . '_update_alias')) {
+          call_user_func('pathauto_' . $entity_type . '_update_alias', $entity, 'update', array('language' => $language));
+        }
       }
     }
   }

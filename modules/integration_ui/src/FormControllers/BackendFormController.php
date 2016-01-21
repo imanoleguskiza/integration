@@ -43,6 +43,10 @@ class BackendFormController extends AbstractForm {
       $form['resource_container'] = FormHelper::fieldset(t('Resource schemas'));
       $form['resource_container']['resource_schemas'] = FormHelper::hiddenLabelCheckboxes(t('Resource schemas'), $options, $default_value);
       $form['resource_container']['select_plugin'] = FormHelper::stepSubmit(t('Select resource schemas'), 'resources_submit');
+    }
+
+    // Prompt each resource schema configuration only when they are set.
+    if ($resources = (array) $configuration->getPluginSetting('resource_schemas')) {
 
       try {
         /** @var AbstractBackendFormHandler $plugin_handler */
@@ -52,10 +56,6 @@ class BackendFormController extends AbstractForm {
       }
       catch (UndefinedFormHandlerException $e) {
       }
-    }
-
-    // Prompt each resource schema configuration only when they are set.
-    if ($resources = (array) $configuration->getPluginSetting('resource_schemas')) {
 
       $rows = [];
       foreach ($resources as $machine_name) {
@@ -83,17 +83,13 @@ class BackendFormController extends AbstractForm {
     // Add component specific forms.
     if ($plugin && $resources) {
       $components = [
-        'response_handler' => [
-          'label' => t('Response handler'),
-          'value' => $configuration->getResponse(),
+        'authentication_handler' => [
+          'label' => t('Authentication handler'),
+          'value' => $configuration->getAuthentication(),
         ],
         'formatter_handler' => [
           'label' => t('Formatter handler'),
           'value' => $configuration->getFormatter(),
-        ],
-        'authentication_handler' => [
-          'label' => t('Authentication handler'),
-          'value' => $configuration->getAuthentication(),
         ],
       ];
 
@@ -103,11 +99,13 @@ class BackendFormController extends AbstractForm {
 
         $form["component_$component_type"] = FormHelper::fieldset($component['label'], FALSE, 'components');
         $form["component_$component_type"][$component_type] = FormHelper::radios($component['label'], $options, $component['value']);
+        $form["component_$component_type"][$component_type]['select_component'] = FormHelper::stepSubmit(t('Select !name', ['!name' => $component['label']]), 'component_submit');
 
-        if ($component['value']) {
+        $component_value = !empty($component['value']) ? $component['value'] : FormHelper::getFirstOption($options);
+        if ($component_value) {
           try {
             $element = FormHelper::fieldset(t('Settings'), TRUE, "component_$component_type");
-            $form_factory->getComponentHandler($component['value'])->form($element, $form_state, $op);
+            $form_factory->getComponentHandler($component_value)->form($element, $form_state, $op);
             $form["component_$component_type"]["{$component_type}_configuration"] = $element;
           }
           catch (UndefinedFormHandlerException $e) {
@@ -129,6 +127,7 @@ class BackendFormController extends AbstractForm {
     switch ($triggering_element['#name']) {
 
       case 'select_plugin':
+      case 'component_submit':
         $form_state['rebuild'] = TRUE;
         break;
 
@@ -142,18 +141,17 @@ class BackendFormController extends AbstractForm {
         break;
     }
 
-    if (isset($input['response_handler'])) {
-      $configuration->setResponse($input['response_handler']);
-    }
     if (isset($input['formatter_handler'])) {
       $configuration->setFormatter($input['formatter_handler']);
     }
     if (isset($input['authentication_handler'])) {
       $configuration->setAuthentication($input['authentication_handler']);
-      try {
-        $form_factory->getComponentHandler($input['authentication_handler'])->formSubmit($form, $form_state);
-      }
-      catch (UndefinedFormHandlerException $e) {
+      if (!$form_state['rebuild']) {
+        try {
+          $form_factory->getComponentHandler($input['authentication_handler'])->formSubmit($form, $form_state);
+        }
+        catch (UndefinedFormHandlerException $e) {
+        }
       }
     }
     if (isset($input['backend'])) {

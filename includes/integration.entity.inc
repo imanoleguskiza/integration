@@ -18,6 +18,16 @@ function integration_entity_info() {
     'module' => 'integration',
   ] + integration_entity_info_defaults();
 
+  $info['integration_backend_entity'] = [
+    'label' => t('Backend entities'),
+    'base table' => 'integration_backend_entities',
+    'controller class' => 'Drupal\integration\Backend\Entity\BackendEntityController',
+    'entity keys' => [
+      'id' => 'id',
+    ],
+    'module' => 'integration',
+  ];
+
   $info['integration_resource_schema'] = [
     'label' => t('Resource schema'),
     'entity class' => 'Drupal\integration\ResourceSchema\Configuration\ResourceSchemaConfiguration',
@@ -35,24 +45,17 @@ function integration_entity_info() {
 function integration_entity_property_info() {
 
   $info['integration_backend']['properties'] = integration_entity_property_info_defaults() + [
-    'response' => [
-      'label' => t('Response'),
-      'type' => 'text',
-      'description' => t('The ID of the response plugin to use.'),
-      'schema field' => 'response',
-      'required' => TRUE,
-    ],
     'formatter' => [
       'label' => t('Formatter'),
       'type' => 'text',
-      'description' => t('The ID of the response plugin to use.'),
+      'description' => t('Formatter plugin name.'),
       'schema field' => 'formatter',
       'required' => TRUE,
     ],
     'authentication' => [
       'label' => t('Authentication'),
       'type' => 'text',
-      'description' => t('The ID of the authentication plugin to use.'),
+      'description' => t('Authentication plugin name.'),
       'schema field' => 'authentication',
       'required' => TRUE,
     ],

@@ -12,11 +12,14 @@ use Drupal\integration\Backend\BackendInterface;
 use Drupal\integration\ConfigurablePluginInterface;
 use Drupal\integration\Configuration\AbstractConfiguration;
 use Drupal\integration\Configuration\ConfigurationFactory;
+use Drupal\integration\Document\DocumentInterface;
 use Drupal\integration\Migrate\AbstractMigration;
+use Drupal\integration\Migrate\DocumentWrapper;
 use Drupal\integration\Migrate\MigrateSourceBackend;
 use Drupal\integration\Plugins\PluginManager;
 use Drupal\integration_consumer\Configuration\ConsumerConfiguration;
 use Drupal\integration_consumer\MappingHandler\AbstractMappingHandler;
+use Drupal\integration\Backend\Entity\BackendEntityController;
 
 /**
  * Class AbstractConsumer.
@@ -61,7 +64,7 @@ abstract class AbstractConsumer extends AbstractMigration implements ConsumerInt
     $this->addFieldMapping('language', 'default_language');
 
     // Apply mapping.
-    foreach ($this->getConfiguration()->getMapping() as $destination => $source) {
+    foreach ($this->getConfiguration()->getMapping() as $source => $destination) {
       $this->addFieldMapping($destination, $source);
       $this->processMappingHandlers($destination, $source);
     }
@@ -140,14 +143,14 @@ abstract class AbstractConsumer extends AbstractMigration implements ConsumerInt
    * @param string|null $source_field
    *    Source field name.
    */
-  protected function processMappingHandlers($destination_field, $source_field = NULL) {
+  protected function processMappingHandlers($destination_field, $source_field) {
     $manager = PluginManager::getInstance('consumer');
 
     $handlers = $manager->getComponentDefinitions('mapping_handler');
     foreach ($handlers as $name => $info) {
       /** @var AbstractMappingHandler $handler */
-      $handler = new $info['class']($this);
-      $handler->process($destination_field, $source_field);
+      $handler = new $info['class']($this, $source_field, $destination_field);
+      $handler->process();
     }
   }
 
@@ -221,6 +224,50 @@ abstract class AbstractConsumer extends AbstractMigration implements ConsumerInt
   public function fetchAll() {
     $this->prepareUpdate();
     $this->processImport();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function complete($entity, $source_row) {
+    $controller = $this->getBackendEntityController();
+    $entity_type = $this->getDestinationEntityType();
+    $values = [
+      'backend_name' => $this->getConfiguration()->getBackend(),
+      'backend_id' => $source_row->getDocument()->getId(),
+      'entity_type' => $entity_type,
+      'entity_id' => entity_id($entity_type, $entity),
+    ];
+    if (!$controller->loadByEntity($values['entity_type'], $values['entity_id'])) {
+      $backend_entity = entity_create('integration_backend_entity', $values);
+      entity_save('integration_backend_entity', $backend_entity);
+    }
+    parent::complete($entity, $source_row);
+  }
+
+  /**
+   * Remove backend-entity mapping after completing a rollback.
+   *
+   * @param array $ids
+   *    Array of entity IDs that have been rolled-back.
+   *
+   * @see \MigrateDestinationEntity::completeRollback()
+   */
+  public function completeRollback($ids) {
+    $entity_type = $this->getDestination()->getEntityType();
+    foreach ($ids as $id) {
+      $this->getBackendEntityController()->deleteByEntity($entity_type, $id);
+    }
+  }
+
+  /**
+   * Get backend entity controller.
+   *
+   * @return BackendEntityController
+   *    Newly instantiated entity controller.
+   */
+  protected function getBackendEntityController() {
+    return entity_get_controller('integration_backend_entity');
   }
 
 }
